@@ -1,0 +1,35 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: icqa_shein
+
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: 1
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        default_schema: icqa_db
+        format_sql: true
+    show-sql: true
+
+cors:
+  allowed-origins: "http://localhost:5173"
+
+app:
+  security:
+    jwt:
+      secret: "CHANGE_ME_TO_A_LONG_RANDOM_SECRET_32+_CHARS_123456"
+      access-token-minutes: 240
