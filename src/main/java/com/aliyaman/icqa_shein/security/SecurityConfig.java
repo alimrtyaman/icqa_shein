@@ -26,11 +26,14 @@ import org.springframework.web.cors.CorsConfiguration;
 
 import java.util.List;
 
+
+
 @Configuration
 @EnableMethodSecurity
 @EnableConfigurationProperties(JwtProperties.class)
 public class SecurityConfig {
 
+    // Render env: CORS_ALLOWED_ORIGINS=https://icqa-frontend.onrender.com
     @Value("${cors.allowed-origins:http://localhost:5173}")
     private String allowedOrigins;
 
@@ -40,17 +43,29 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(req -> {
                     CorsConfiguration cfg = new CorsConfiguration();
+
+                    // IMPORTANT: frontend origin
                     cfg.setAllowedOrigins(List.of(allowedOrigins));
-                    cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                    cfg.setAllowedHeaders(List.of("*"));
-                    cfg.setAllowCredentials(true);
+
+                    // Preflight + normal istekler
+                    cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+
+                    // Token header'ı için net header listesi
+                    cfg.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+
+                    // İstersen response header'ını da expose et (genelde şart değil)
+                    cfg.setExposedHeaders(List.of("Authorization"));
+
+                    // Bearer token kullanıyorsun -> cookie yok -> false daha sorunsuz
+                    cfg.setAllowCredentials(false);
+
                     return cfg;
                 }))
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/audits/**").authenticated() // ✅ token ister
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // preflight serbest
+                        .requestMatchers("/api/auth/**").permitAll()            // login/register serbest
+                        .requestMatchers("/api/audits/**").authenticated()      // token ister
                         .anyRequest().authenticated()
                 )
                 .httpBasic(Customizer.withDefaults());
@@ -59,7 +74,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // ✅ BU EKSİKTİ: AuthService bununla ayağa kalkacak
+    // örnek in-memory user (sen kullanıyorsan kalsın)
     @Bean
     public UserDetailsService userDetailsService(PasswordEncoder encoder) {
         var admin = User.builder()
