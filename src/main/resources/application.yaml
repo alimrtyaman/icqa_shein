@@ -24,6 +24,11 @@ spring:
         format_sql: true
     show-sql: false
 
+logging:
+  level:
+    org.springframework: INFO
+    org.hibernate: INFO
+
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:*}
 
