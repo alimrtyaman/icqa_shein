@@ -6,6 +6,7 @@ COPY pom.xml .
 COPY .mvn .mvn
 COPY mvnw mvnw
 
+# Windows CRLF fix + wrapper çalıştır
 RUN sed -i 's/\r$//' mvnw && chmod +x mvnw
 RUN ./mvnw -q -DskipTests dependency:go-offline
 
@@ -20,4 +21,5 @@ COPY --from=build /app/target/*.jar app.jar
 
 ENV PORT=8080
 EXPOSE 8080
+
 CMD ["sh","-c","java -Dserver.port=$PORT -jar app.jar"]
